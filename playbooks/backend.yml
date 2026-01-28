@@ -1,0 +1,9 @@
+---
+- name: Backend Setup
+  hosts: backend
+  gather_facts: false
+
+  tasks:
+    - name: See
+      debug:
+        msg: "See: http://{{ ansible_host }}"
