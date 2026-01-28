@@ -17,40 +17,22 @@
   hosts: backend
   gather_facts: false
 
-  vars:
-    systemd_service_name: counter-backend
-    systemd_service_exec_start: /usr/local/bin/counter
-    systemd_service_environment:
-      EXTRA_TEXT: "Hello Generali"
-
   roles:
-    - systemd_service
+    - role: systemd_service
+      vars:
+        systemd_service_name: counter-backend
+        systemd_service_exec_start: /usr/local/bin/counter
+        systemd_service_environment:
+          EXTRA_TEXT: "Hello Generali"
 
-- name: Backend Caddy
-  hosts: backend
-  gather_facts: false
+    - role: caddy_reverse_proxy
+      vars:
+        caddy_reverse_proxy_domain: "{{ ansible_host }}"
+        caddy_reverse_proxy_port: 8000
+
 
   tasks:
-    - name: Install Caddy
-      apt:
-        name: caddy
-        state: present
-    - name: Create Caddyfile for backend
-      template:
-        src: ../templates/Caddyfile.backend.j2
-        dest: /etc/caddy/Caddyfile
-        owner: root
-        group: root
-        mode: 0644
-      notify:
-        -  Restart backend caddy
-
     - name: See
       debug:
         msg: "See: https://{{ ansible_host }}"
 
-  handlers:
-    - name: Restart backend caddy
-      systemd:
-        name: caddy
-        state: restarted

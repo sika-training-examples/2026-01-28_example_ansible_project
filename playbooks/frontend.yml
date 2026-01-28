@@ -13,42 +13,21 @@
   hosts: frontend
   gather_facts: false
 
-  vars:
-    systemd_service_name: counter-frontend
-    systemd_service_exec_start: /usr/local/bin/counter-frontend-go
-    systemd_service_environment:
-      API_ORIGIN: https://example-backend.sikademo.com
-      FONT_COLOR: '#C21B18'
-      BACKGROUND_COLOR: white
-
   roles:
-    - systemd_service
-
-- name: Frontend Caddy
-  hosts: frontend
-  gather_facts: false
+    - role: systemd_service
+      vars:
+        systemd_service_name: counter-frontend
+        systemd_service_exec_start: /usr/local/bin/counter-frontend-go
+        systemd_service_environment:
+          API_ORIGIN: https://example-backend.sikademo.com
+          FONT_COLOR: '#C21B18'
+          BACKGROUND_COLOR: white
+    - role: caddy_reverse_proxy
+      vars:
+        caddy_reverse_proxy_domain: "{{ ansible_host }}"
+        caddy_reverse_proxy_port: 3000
 
   tasks:
-    - name: Install Caddy
-      apt:
-        name: caddy
-        state: present
-    - name: Create Caddyfile for frontend
-      template:
-        src: ../templates/Caddyfile.frontend.j2
-        dest: /etc/caddy/Caddyfile
-        owner: root
-        group: root
-        mode: 0644
-      notify:
-        -  Restart frontend caddy
-
     - name: See
       debug:
         msg: "See: https://{{ ansible_host }}"
-
-  handlers:
-    - name: Restart frontend caddy
-      systemd:
-        name: caddy
-        state: restarted
