@@ -12,15 +12,25 @@
       apt:
         name: redis
         state: present
-    - name: Create counter-backend systemd service
-      template:
-        src: ../templates/counter-backend.service.j2
-        dest: /etc/systemd/system/counter-backend.service
-        owner: root
-        group: root
-        mode: 0644
-      notify:
-        -  Restart counter-backend service
+
+- name: Backend Systemd Service
+  hosts: backend
+  gather_facts: false
+
+  vars:
+    systemd_service_name: counter-backend
+    systemd_service_exec_start: /usr/local/bin/counter
+    systemd_service_environment:
+      EXTRA_TEXT: "Hello Generali"
+
+  roles:
+    - systemd_service
+
+- name: Backend Caddy
+  hosts: backend
+  gather_facts: false
+
+  tasks:
     - name: Install Caddy
       apt:
         name: caddy
@@ -40,12 +50,6 @@
         msg: "See: https://{{ ansible_host }}"
 
   handlers:
-    - name: Restart counter-backend service
-      systemd:
-        name: counter-backend
-        state: restarted
-        daemon_reload: true
-
     - name: Restart backend caddy
       systemd:
         name: caddy

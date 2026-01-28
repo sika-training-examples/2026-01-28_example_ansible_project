@@ -8,15 +8,27 @@
       command:
         cmd: slu install-bin counter-frontend-go
         creates: /usr/local/bin/counter-frontend-go
-    - name: Create counter-frontend systemd service
-      template:
-        src: ../templates/counter-frontend.service.j2
-        dest: /etc/systemd/system/counter-frontend.service
-        owner: root
-        group: root
-        mode: 0644
-      notify:
-        -  Restart counter-frontend service
+
+- name: Frontend Systemd Service
+  hosts: frontend
+  gather_facts: false
+
+  vars:
+    systemd_service_name: counter-frontend
+    systemd_service_exec_start: /usr/local/bin/counter-frontend-go
+    systemd_service_environment:
+      API_ORIGIN: https://example-backend.sikademo.com
+      FONT_COLOR: '#C21B18'
+      BACKGROUND_COLOR: white
+
+  roles:
+    - systemd_service
+
+- name: Frontend Caddy
+  hosts: frontend
+  gather_facts: false
+
+  tasks:
     - name: Install Caddy
       apt:
         name: caddy
@@ -36,12 +48,6 @@
         msg: "See: https://{{ ansible_host }}"
 
   handlers:
-    - name: Restart counter-frontend service
-      systemd:
-        name: counter-frontend
-        state: restarted
-        daemon_reload: true
-
     - name: Restart frontend caddy
       systemd:
         name: caddy
