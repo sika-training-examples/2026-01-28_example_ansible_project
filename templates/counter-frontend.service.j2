@@ -1,0 +1,15 @@
+[Unit]
+Description=counter-frontend
+After=network.target
+
+[Service]
+Type=simple
+Environment="API_ORIGIN=https://example-backend.sikademo.com"
+ExecStart=/usr/local/bin/counter-frontend-go
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
