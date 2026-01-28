@@ -1,0 +1,15 @@
+[Unit]
+Description=counter-backend
+After=network.target
+
+[Service]
+Environment="EXTRA_TEXT=Hello from Ansible"
+Type=simple
+ExecStart=/usr/local/bin/counter
+Restart=on-failure
+RestartSec=5s
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
